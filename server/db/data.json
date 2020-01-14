@@ -1,0 +1,121 @@
+{
+  "users": [
+    {
+      "id": "12wtu6kq9hy",
+      "username": "a",
+      "password": "a"
+    },
+    {
+      "id": "17zlga3yz5hj",
+      "username": "saasassasas",
+      "password": "sssssss"
+    }
+  ],
+  "channels": [
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "gff",
+      "timestamp": 1579002676779
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "yytyt",
+      "timestamp": 1579003275690
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "asa",
+      "timestamp": 1579003378621
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "lel",
+      "timestamp": 1579003607679
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "lel",
+      "timestamp": 1579003888769
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "ewewew",
+      "timestamp": 1579003919041
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "10",
+      "timestamp": 1579004128519
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "eewqw",
+      "timestamp": 1579005429791
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "lel",
+      "timestamp": 1579005434007
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "ok",
+      "timestamp": 1579006599220
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "ç_Ç",
+      "timestamp": 1579007398454
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "https://tailwindcss.com/docs/font-family/#app",
+      "timestamp": 1579007724494
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "LELE ok https://tailwindcss.com/docs/font-family/#app lele ok",
+      "timestamp": 1579008742646
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "ss",
+      "timestamp": 1579009297425
+    },
+    {
+      "chat_id": 1,
+      "sender_id": 1,
+      "author": "TheRox91",
+      "message": "eewe",
+      "timestamp": 1579019229966
+    }
+  ]
+}

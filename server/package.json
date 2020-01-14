@@ -1,0 +1,23 @@
+{
+  "name": "node-socket",
+  "version": "1.0.0",
+  "description": "A Simple chat written in node js and socket.io",
+  "repository": "https://github.com/nouaryk/node-chat-socket.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "nouaryk",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "ejs": "^3.0.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.0",
+    "lowdb": "^1.0.0",
+    "path": "^0.12.7",
+    "socket.io": "^1.7.3",
+    "tailwindcss": "^1.1.4"
+  }
+}

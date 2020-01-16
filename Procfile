@@ -1,1 +1,1 @@
-web: npm run dev && node server/server.js & wait -n
+web: npm i && npm run dev 

@@ -12,8 +12,8 @@
   <form id="register" @submit.prevent="register" class="animated bounceInLeft " action="">
     <input v-model="username" autofocus autocomplete="off" class="appearance-none bg-gray-900 rounded w-full py-2 px-3 text-gray-100 mb-3 leading-tight focus:outline-none" type="text" value="" placeholder="Nombre de usuario">
     <input v-model="password" autocomplete="off" class="appearance-none bg-gray-900 rounded w-full py-2 px-3 text-gray-100 mb-3 leading-tight focus:outline-none" type="password" value="" placeholder="************">
-    <input  autocomplete="off" class="appearance-none bg-gray-900 rounded w-full py-2 px-3 text-gray-100 mb-3 leading-tight focus:outline-none" type="password" value="" placeholder="************">
-    <button class="shadow appearance-none border bg-red-500 border-red-500 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:shadow-none mb-5" type="submit">Crear cuenta</button>
+    <input v-model="confirm_pass" autocomplete="off" class="appearance-none bg-gray-900 rounded w-full py-2 px-3 text-gray-100 mb-3 leading-tight focus:outline-none" type="password" value="" placeholder="************">
+    <button class="shadow appearance-none border bg-red-500 border-red-500 rounded w-full py-2 px-3 text-gray-200 leading-tight focus:outline-none focus:shadow-none mb-5" type="submit"><fa v-if="isLoading" class="text-1xl spin" icon="circle-notch" :style="{ color: 'white' }"/>&nbsp; Crear cuenta</button>
     <button type="button" @click="$router.push('/login')" class="shadow appearance-none border bg-gray-200 text-gray-900 rounded w-full py-2 px-3  leading-tight focus:outline-none focus:shadow-none">Iniciar Sesión</button>
 
   </form>
@@ -23,8 +23,12 @@
 
 
 <script>
+const Cookie = process.client ? require('js-cookie') : undefined
+
 import socket from '~/plugins/socket.io.js'
 import Alert from '~/components/Alert.vue'
+import axios from 'axios'
+
 export default {
   middleware: ['authenticated'],
 
@@ -34,34 +38,61 @@ export default {
   
   data() {
     return {
-      username: '',
-      password: '',
+      isLoading: false,
+      username: 's',
+      password: 's',
+      confirm_pass: 's',
       alertMessage: '',
       alertType: 'error'
     }
   },
 
   methods: {
-    register() {
-      if(this.username!='' && this.password!='') {
-        socket.emit('register', {
+  async register() {
+       this.isLoading = true
+     if(this.username!='' && this.password!='' && this.confirm_pass) {
+
+       if(this.password != this.confirm_pass) {
+       this.alertMessage = 'Las contraseñas no coinciden'
+       } else {
+
+         try {
+      await axios
+        .post('http://localhost:8080/register', {
           username: this.username,
           password: this.password
         })
-
-        socket.on('register', (resp) => {
-          if(resp.status=='USER_CREATED') {
-            this.$router.push('/chat');
+        .then(resp => {
+          console.log(resp.data)
+         if(resp.data.status=='USER_CREATED') {
+            const auth = {
+              accessToken: resp.data.accessToken
+            }
+            this.$store.commit('setAuth', auth) // mutating to store for client rendering
+            Cookie.set('auth', auth) // saving token in cookie for server rendering
+           this.$router.push('/chat');
           } else {
-            this.alertMessage = 'La cuenta ya existe, intenta registrarte con otro nombre de usuario.'
+             this.alertMessage = 'Este usuario ya existe'
           }
-        })
-        
-      } else {
-        this.alertMessage = 'Rellena el nombre de usuario y contraseña.'
-      }
+          
+       })
+      }catch(e){
+        console.log(e)
+        this.$toast.error('Error del servidor, inténtalo más tarde...', {
+            duration: 2000
+          })
+        } finally {
+          this.isLoading = false
+        } 
 
-    }
+       }
+
+       
+    } else {
+        this.alertMessage = 'Rellena el nombre de usuario y contraseña'
+        this.isLoading = false
+      }
+  }
   }
 
 }

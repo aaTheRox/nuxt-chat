@@ -28,6 +28,7 @@ export default {
   ** Plugins to load before mounting the App
   */
   plugins: [
+    { src: '~/plugins/utils', ssr: false},
   ],
   /*
   ** Nuxt.js dev-modules
@@ -44,6 +45,22 @@ export default {
     '@nuxtjs/axios',
     // Doc: https://github.com/nuxt-community/dotenv-module
     '@nuxtjs/dotenv',
+    '@nuxtjs/toast',
+    '@neneos/nuxt-animate.css',
+    ['nuxt-fontawesome', {
+      component: 'fa', 
+      imports: [
+        //import whole set
+        {
+          set: '@fortawesome/free-solid-svg-icons',
+          icons: ['fas']
+        },
+        //import 2 icons from set 
+        // please note this is PRO set in this example, 
+        // you must have it in your node_modules to actually import
+        
+      ]
+    }]
   ],
    env: {
     WS_URL: process.env.WS_URL || 'http://localhost:8080'
@@ -65,28 +82,17 @@ export default {
     }
   },
 
-  auth: {
-    strategies: {
-      local: {
-        endpoints: {
-          login: {
-            url: '/login',
-            method: 'post',
-            propertyName: false
-          },
-          logout: { 
-            url: '/logout', 
-            method: 'post' 
-          },
-          chat: { 
-            url: '/chat', 
-            method: 'get', 
-            propertyName: false 
+  toast: {
+      position: 'top-center',
+      register: [ // Register custom toasts
+        {
+          name: 'my-error',
+          message: 'Oops...Something went wrong',
+          options: {
+            type: 'error'
           }
-        },
-        tokenRequired: false,
-        tokenType: false
-      }
-    }
-  },
+        }
+      ]
+  }
+
 }

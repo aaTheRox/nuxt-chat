@@ -18,6 +18,54 @@ db.defaults({ users: [], channels: []})
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json())
 
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
+
+app.post('/login', (req, res) => {
+  let data = req.body;
+  console.log(data)
+
+  const user = db.get('users').find({username: data.username, password: data.password}).value();
+    if(user) {
+      data = {
+        status: 'LOGIN_SUCCESS',
+        userId: user.id,
+        username: user.username,
+        accessToken: generateAuthToken()
+      }
+    } else {
+      data = {
+        status: 'LOGIN_ERROR',
+      }
+    }
+    res.send(data);
+
+})
+
+app.post('/register', (req, res) => {
+
+
+  const user = db.get('users').find({username: req.body.username}).value();
+    if(!user) {
+      const uniqueID = generateAuthToken();
+      data = {
+        status: 'USER_CREATED',
+        userId: uniqueID,
+        accessToken: uniqueID
+      }
+       db.get('users')
+      .push({ id: uniqueID, username: req.body.username, password: req.body.password})
+      .write();
+    } else {
+      data = {
+        status: 'USER_ALREADY_EXISTS',
+      }
+    }
+    res.send(data);
+})
 
 io.on('connection', function(socket){
   socket.on('register', (data)=>{
@@ -47,22 +95,7 @@ io.on('connection', function(socket){
     
 });
 
-  socket.on('login', (data)=>{
-    const user = db.get('users').find({username: data.username, password: data.password}).value();
-    if(user) {
-      data = {
-        status: 'LOGIN_SUCCESS',
-        userId: user.id,
-        username: user.username,
-        accessToken: Math.random().toString(36).substr(2)
-      }
-    } else {
-      data = {
-        status: 'LOGIN_ERROR',
-      }
-    }
-    io.sockets.emit('login', data);
-});
+
 
 socket.on("send-message", (data)=>{
   const send_timestamp = Date.now();
@@ -76,7 +109,8 @@ socket.on("send-message", (data)=>{
       sender_id: data.sender_id,
       author: data.author,
       message: data.message,
-      timestamp: send_timestamp
+      timestamp: send_timestamp,
+      edited: false
     })
     .write();
   });
@@ -99,8 +133,32 @@ socket.on('get-messages', (res) => {
   io.sockets.emit('get-messages', messages)
 })
 
+
+socket.on('get-mylast-message', (resp) => {
+  const lastMessage = db.get('channels').filter({sender_id: 1}).orderBy ('timestamp','desc').take(1).value()
+  console.log(lastMessage) 
+  socket.emit('get-mylast-message', ...lastMessage);
+  console.log('getting my last message')
+})
+
+socket.on('edit-message', (resp) => {
+  const response = db.get('channels')
+    .find({timestamp: resp.created_date})
+    .assign({message: resp.message, timestamp: Date.now(), edited: true})
+    .write()
+    const lastMessage = db.get('channels').filter({timestamp: resp.created_date}).take(1).value()
+    console.log(lastMessage) 
+    socket.emit('edit-message', lastMessage);
+})
+
 });
+
+// Generates a token for user auth
+const generateAuthToken = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
 
 http.listen(port, function(){
   console.log('listening on *:' + port);
 });
+

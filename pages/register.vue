@@ -58,7 +58,7 @@ export default {
 
          try {
       await axios
-        .post('http://localhost:8080/register', {
+        .post(`${process.env.AXIOS_URL}register`, {
           username: this.username,
           password: this.password
         })
@@ -66,7 +66,9 @@ export default {
           console.log(resp.data)
          if(resp.data.status=='USER_CREATED') {
             const auth = {
-              accessToken: resp.data.accessToken
+              accessToken: resp.data.accessToken,
+              username: this.username,
+              userId: resp.data.userId
             }
             this.$store.commit('setAuth', auth) // mutating to store for client rendering
             Cookie.set('auth', auth) // saving token in cookie for server rendering

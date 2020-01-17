@@ -16,8 +16,11 @@
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "lowdb": "^1.0.0",
+    "mongodb": "^3.5.0",
+    "mongoose": "^5.8.7",
     "path": "^0.12.7",
     "socket.io": "^1.7.3",
-    "tailwindcss": "^1.1.4"
+    "tailwindcss": "^1.1.4",
+    "websocket": "^1.0.31"
   }
 }

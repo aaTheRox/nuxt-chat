@@ -1,9 +1,19 @@
 var express = require('express');
 var bodyParser = require('body-parser')
 var app = require('express')();
+var server = app.listen(8081);
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var port = process.env.PORT || 8080;
+
+
+const WebSocket = require('ws');
+
+const wss = new WebSocket.Server({ port: process.env.PORT || 8888});
+const date = new Date()
+const time = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
+
+
+var port = process.env.PORT || 8080
 var path = require('path');
 
 const low = require('lowdb')
@@ -24,6 +34,11 @@ app.use((req, res, next) => {
     next();
 });
 
+
+
+
+
+/*
 app.post('/login', (req, res) => {
   let data = req.body;
   console.log(data)
@@ -46,8 +61,6 @@ app.post('/login', (req, res) => {
 })
 
 app.post('/register', (req, res) => {
-
-
   const user = db.get('users').find({username: req.body.username}).value();
     if(!user) {
       const uniqueID = generateAuthToken();
@@ -67,45 +80,21 @@ app.post('/register', (req, res) => {
     res.send(data);
 })
 
-io.on('connection', function(socket){
-  socket.on('register', (data)=>{
-    let uniqueID = Math.random().toString(36).slice(2);
-    const user = db
-    .get('users')
-    .find({ username:  data.username })
-    .value()
-
-    console.log(user)
-
-    if(user!=undefined) {
-      data = { status: 'USER_ALREADY_EXISTS' };
-    } else {
-       db.get('users')
-      .push({ id: uniqueID, username: data.username, password: data.password})
-      .write();
-      
-     data = {
-        status: 'USER_CREATED',
-        userId: uniqueID,
-        username: data.username,
-        password: data.password
-      }
-    }
-    io.sockets.emit('register', data);
-    
-});
+app.get('/getMessages', (req, res) => {
+  const messages = db.get('channels').value().filter((message) => message.message_id!=0); // filter by user id 
+  console.log(`[API] Retrieving a total of ${messages.length} messages`);
+  res.send(messages)
+})
 
 
 
 socket.on("send-message", (data)=>{
   const send_timestamp = Date.now();
-  console.log(send_timestamp);
-  console.log(data)
   io.sockets.emit('send-message', data);
   // add message
   db.get('channels')
     .push({
-      chat_id: 1,
+      message_id: randomInteger(),
       sender_id: data.sender_id,
       author: data.author,
       message: data.message,
@@ -116,6 +105,7 @@ socket.on("send-message", (data)=>{
   });
 
 socket.on("typing", (data)=>{
+  console.log('typing')
   socket.broadcast.emit('typing', data);
 });
 
@@ -125,17 +115,15 @@ socket.on('getConnectedUsers', (data) => {
   io.sockets.emit('getConnectedUsers', res);
 })
 
-
-
 socket.on('get-messages', (res) => {
-  const messages = db.get('channels').value().filter((message) => message.chat_id!=0); // filter by user id 
+  const messages = db.get('channels').value().filter((message) => message.message_id!=0); // filter by user id 
   console.log(`[API] Retrieving a total of ${messages.length} messages`);
   io.sockets.emit('get-messages', messages)
 })
 
-
-socket.on('get-mylast-message', (resp) => {
-  const lastMessage = db.get('channels').filter({sender_id: 1}).orderBy ('timestamp','desc').take(1).value()
+socket.on('get-mylast-message', (sender_id) => {
+  console.log('ccc', sender_id)
+  const lastMessage = db.get('channels').filter({sender_id}).orderBy ('timestamp','desc').take(1).value()
   console.log(lastMessage) 
   socket.emit('get-mylast-message', ...lastMessage);
   console.log('getting my last message')
@@ -143,10 +131,10 @@ socket.on('get-mylast-message', (resp) => {
 
 socket.on('edit-message', (resp) => {
   const response = db.get('channels')
-    .find({timestamp: resp.created_date})
+    .find({message_id: resp.message_id})
     .assign({message: resp.message, timestamp: Date.now(), edited: true})
     .write()
-    const lastMessage = db.get('channels').filter({timestamp: resp.created_date}).take(1).value()
+    const lastMessage = db.get('channels').filter({message_id: resp.message}).take(1).value()
     console.log(lastMessage) 
     socket.emit('edit-message', lastMessage);
 })
@@ -157,8 +145,11 @@ socket.on('edit-message', (resp) => {
 const generateAuthToken = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
-
-http.listen(port, function(){
+const randomInteger = () => {
+  return Math.floor(Math.random(999999999-0) * 999999999);
+}
+/*
+http.listen(port, () =>{
   console.log('listening on *:' + port);
 });
-
+*/

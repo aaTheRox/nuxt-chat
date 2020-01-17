@@ -14,14 +14,13 @@
             </span> </p>
         </div>
       </div>
-      <div id="typing"></div>
-      
+      <div><strong>{{ userTyping.name }}</strong> {{ userTyping.callback }}</div>
       
     </div>
     <div class="flex-1 px-5 ">
       <button @click="logout" class="appearance-none bg-gray-100 rounded w-full py-1 px-10 mt-3 text-gray-700 block">Cerrar</button>
     <div class="sidebar-users text-white">
-      <ul >
+      <ul>
         <li>usuario 1</li>
         <li>usuario 2</li>
         <li>usuario 3</li>
@@ -33,7 +32,11 @@
   <div class="bg-gray-800">
   <div class="md:flex">
     <div class="md:w-full md:px-2">
-      <input autocomplete="off" @keyup="handleKeyPress" v-model="message" autofocus="true" class="appearance-none bg-gray-900 rounded w-full py-2 px-3 text-gray-100 mb-3 leading-tight focus:outline-none" placeholder="Escribe algo..." />
+
+      <send-message @send-message="handleKeyPress"></send-message>
+
+      <!--<input autocomplete="off" @keyup="handleKeyPress" v-model="message" autofocus="true" class="appearance-none bg-gray-900 rounded w-full py-2 px-3 text-gray-100 mb-3 leading-tight focus:outline-none" placeholder="Escribe algo..." />
+    -->
     </div>
   </div>
   </div>
@@ -44,49 +47,68 @@
 <script>
 const Cookie = process.client ? require('js-cookie') : undefined
 
- import { fas } from '@fortawesome/free-solid-svg-icons'
+import { fas } from '@fortawesome/free-solid-svg-icons'
 import {utils} from '~/plugins/utils.js'
-import socket from '~/plugins/socket.io.js'
+import axios from 'axios'
+
+import SendMessage from '~/components/SendMessage'
+var socket;
 export default {
 middleware: 'notAuthenticated',
+components: {
+  'send-message': SendMessage
+},
  data() {
    return {
-     username: 'TheRox91',
-     message: '',
-     response: '',
+     message: '', // Message sent
      isLoading: true,
-     messages: [],
-     editMode: false
+     messages: [], // Array of total messages
+     editMode: false, // Enables edit mode 
+     editId: 0, // message id to edit
+     userTyping: { // Saves on typing data 
+       name: '',
+       callback: ''
+     }
    }
  },
- mounted() {
-   console.log(this.$store.state.auth)
- },
-
  created() {
-this.getMessages();
- 
-   setInterval(() => {
+    this.getMessages();
+  /* setInterval(() => {
     this.getMessages()
    }, 60000) // refreshing every minute
+   */
+ },
+
+ mounted() {
+   console.log(this.$store.state.auth)
+   console.log('check auth', utils.checkAuthToken(this.$store.state.auth.accessToken, "62rzhzu48s8yu3donarkm"))
+
+   socket =  new WebSocket(process.env.WS_URL);
+    socket.addEventListener('message', (data) => {
+        console.log(data)
+        //this.getMessages()
+    });
  },
  methods: {
 
-    getMessages() {
+    async getMessages() {
+    const parent = this;
+  try {
 
-      try {
-      const emit = socket.emit('get-messages')
-
-        socket.on('get-messages', (data) => {
-          this.messages = data;
-      })
-      } catch(e) {
-        console.log('errorrr')
-        this.$toast.error('El servidor no responde, inténtalo más tarde.', {duration: 2000})
-      }
-
-       this.isLoading = false
-     
+      await axios
+        .get(`${process.env.AXIOS_URL}getMessages`, {
+        })
+        .then(resp => {
+            this.messages = resp.data;
+       })
+      }catch(e){
+        console.log(e)
+        this.$toast.error('No se han podido recuperar los mensajes, inténtalo más tarde.', {
+            duration: 2000
+          })
+        } finally {
+          parent.isLoading = false
+        } 
    },
 
    logout() {
@@ -95,62 +117,98 @@ this.getMessages();
       this.$router.push('/')
    },
 
-   handleKeyPress() {
-
+   handleKeyPress(messageContent) {
+    // ENTER | SEND MESSAGE
      switch(event.keyCode || event.which) {
-       // ENTER | SEND MESSAGE
        case 13:
         if(!this.editMode) {
           if(event.which==13 || event.keyCode==13) {
-            if(this.message !='') {
+            console.log(socket)
+            if(messageContent !='' && socket.readyState===1) {
               let message = {
-              chat_id: 1,
-              sender_id: 1,
-              author: this.username,
-              message: this.message
-            }
-            const emit = socket.emit('send-message', message)
-            socket.on('send-message', (data) => {
-              this.getMessages()
-            })
+                message_id: this.editId,
+                sender_id: this.$store.state.auth.userId,
+                author: this.$store.state.auth.username,
+                message: messageContent
+              }
 
-            if(!emit.connected) {
+              console.log('---')
+              socket.send(JSON.stringify(message));
+            this.message = '';
+            this.getMessages();
+
+            } else {
               this.$toast.error('No se ha podido enviar el mensaje, inténtalo más tarde.')
             }
-
-            this.message = '';
-            }
-            
           }
 
      } else {
        // SENDING EDITED MESSAGE
-       const created_date = 1579086991627; // cambiar por msg_id
-       socket.emit('edit-message', {created_date, message: this.message});
+      /* const message_id = this.editId; // cambiar por msg_id
+       socket.emit('edit-message', {message_id, message: this.message});
        socket.on('edit-message', (resp) => {
          this.message = ''
          this.getMessages()
+         this.editMode = false;
        })
-     }
+    */ 
+    }
        break;
 
        // KEY UP | EDIT MODE
        case 38:
         this.editMode = true;
-          socket.emit('get-mylast-message');
+        const sender_id = this.$store.state.auth.userId;
+        /*
+          socket.emit('get-mylast-message', sender_id);
           socket.on('get-mylast-message', (lastMessage) => {
           this.message = lastMessage.message
+          this.editId = lastMessage.message_id
         })
+          */
        break;
        // ESC | EXIT EDIT MODE
        case 27:
         this.editMode = false;
         this.message = ''
        break;
+
+       default:
+       if(this.message !='') {
+       /* socket.emit('typing', {
+          author: this.$store.state.auth.username
+        })
+        */
+        this.onUserTyping()
+
+        var timeout = setTimeout(this.clearTyping, 2000);
+       }
+      break;
      }
-    
    },
 
+   send(payload) {
+      socket.send(JSON.stringify(payload));
+   },
+  onUserTyping() {
+    socket.on('typing', (data) => {
+          if (data && data.author != '') {
+
+            this.userTyping = {
+              name: data.author,
+              callback: 'está escribiendo...'
+            }
+          } else {
+            this.userTyping = {
+              name: '',
+              message: ''
+            }
+          }
+        })
+  },
+  clearTyping() {
+      //socket.emit("typing", false);
+  },
    formatLink(message) {
      const splitMessage = message.split(' ');
      let replacedLink = message;
@@ -166,8 +224,6 @@ this.getMessages();
    formatDate(time) {
      return utils.formatDate(time)
    }
-
-   
  }
 }
 </script>

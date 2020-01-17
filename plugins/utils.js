@@ -1,4 +1,3 @@
-console.log('loaded')
 
 export const utils = {
     formatDate: (timestamp) => {
@@ -35,6 +34,14 @@ export const utils = {
        }
     }
      return state;
+    },
+    /**
+     * Checks if server token is equal to browserToken
+     */
+    checkAuthToken: (token, browserToken) =>{
+      return (token===browserToken) ? true : false;
     }
+
+
 }
 

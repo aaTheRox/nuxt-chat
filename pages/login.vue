@@ -23,7 +23,6 @@
 import { mapMutations } from 'vuex'
 const Cookie = process.client ? require('js-cookie') : undefined
 
-import socket from '~/plugins/socket.io.js'
 import Alert from '~/components/Alert.vue'
 import utils from '~/components/Utils.vue'
 import axios from 'axios'
@@ -44,6 +43,9 @@ export default {
     }
   },
 
+  mounted() {
+    console.log(process.env.AXIOS_URL)
+  },
   methods: {
     async  login() {
        this.isLoading = true
@@ -51,7 +53,7 @@ export default {
 
        try {
       await axios
-        .post('http://localhost:8080/login', {
+        .post(`${process.env.AXIOS_URL}login`, {
           username: this.username,
           password: this.password
         })
@@ -59,7 +61,9 @@ export default {
           if(resp.data.status=='LOGIN_SUCCESS') {
             console.log(resp)
             const auth = {
-              accessToken: resp.data.accessToken
+              accessToken: resp.data.accessToken,
+              username: this.username,
+              userId: resp.data.userId
             }
             this.$store.commit('setAuth', auth) // mutating to store for client rendering
             Cookie.set('auth', auth) // saving token in cookie for server rendering

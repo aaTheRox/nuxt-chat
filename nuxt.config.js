@@ -63,7 +63,9 @@ export default {
     }]
   ],
    env: {
-    WS_URL: process.env.WS_URL || 'http://localhost:8080'
+    //WS_URL: process.env.WS_URL || 'http://localhost:8080',
+    WS_URL: process.env.WS_URL || 'ws://localhost:8888',
+    AXIOS_URL: process.env.AXIOS_URL || 'http://localhost:8888/'
   },
   /*
   ** Axios module configuration

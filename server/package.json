@@ -19,7 +19,7 @@
     "mongodb": "^3.5.0",
     "mongoose": "^5.8.7",
     "path": "^0.12.7",
-    "socket.io": "^1.7.3",
+    "socket.io": "^4.5.3",
     "tailwindcss": "^1.1.4",
     "websocket": "^1.0.31"
   }
